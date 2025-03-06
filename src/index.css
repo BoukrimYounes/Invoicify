@@ -1,0 +1,72 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import "tailwindcss";
+
+
+
+
+@theme {
+  --font-inter: "Inter", "sans-serif";
+  --color-main: #5271ff;
+  --color-second: #545454;
+}
+
+html {
+  @apply bg-white text-black dark:bg-gray-900 dark:text-white
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(243, 244, 246, 0.1);
+  /* bg-gray-100/10 */
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(209, 213, 219, 0.5);
+  /* bg-gray-300/50 */
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.7);
+  /* bg-gray-400/70 */
+}
+
+/* Dark Mode Support */
+.dark ::-webkit-scrollbar-track {
+  background: rgba(31, 41, 55, 0.1);
+  /* dark:bg-gray-800/10 */
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(107, 114, 128, 0.5);
+  /* dark:bg-gray-600/50 */
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.7);
+  /* dark:bg-gray-400/70 */
+}
+
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
