@@ -55,7 +55,7 @@ const invoices = [
     id: "#INV004",
     client: "Emily Davis",
     amount: 875.25,
-    status: "Overdue",
+    status: "Unpaid",
     date: "2024-02-12",
   },
   {
@@ -76,7 +76,7 @@ const invoices = [
     id: "#INV007",
     client: "James Miller",
     amount: 1300.5,
-    status: "Overdue",
+    status: "Unpaid",
     date: "2024-02-09",
   },
   {
@@ -97,7 +97,7 @@ const invoices = [
     id: "#INV010",
     client: "Ava Martinez",
     amount: 500.0,
-    status: "Overdue",
+    status: "Unpaid",
     date: "2024-02-06",
   },
   {
@@ -118,7 +118,7 @@ const invoices = [
     id: "#INV013",
     client: "Liam Hernandez",
     amount: 2200.0,
-    status: "Overdue",
+    status: "Unpaid",
     date: "2024-02-03",
   },
   {
@@ -139,7 +139,7 @@ const invoices = [
     id: "#INV016",
     client: "Charlotte Perez",
     amount: 4200.0,
-    status: "Overdue",
+    status: "Unpaid",
     date: "2024-01-31",
   },
   {
@@ -160,7 +160,7 @@ const invoices = [
     id: "#INV019",
     client: "Benjamin Sanchez",
     amount: 500.0,
-    status: "Overdue",
+    status: "Unpaid",
     date: "2024-01-28",
   },
   {
@@ -222,7 +222,7 @@ export default function HomePage() {
         return "bg-green-500/20 text-green-500";
       case "Pending":
         return "bg-yellow-500/20 text-yellow-500";
-      case "Overdue":
+      case "Unpaid":
         return "bg-red-500/20 text-red-500";
       default:
         return "bg-gray-500/20 text-gray-500";

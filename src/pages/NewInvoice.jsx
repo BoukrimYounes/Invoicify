@@ -18,6 +18,15 @@ function NewInvoice() {
     { code: "BTC", name: "Bitcoin" }, // Added Bitcoin
   ];
 
+  const invoiceStatuses = [
+    { value: "Unpaid", label: "Unpaid", color: "bg-red-100 text-red-800" },
+    {
+      value: "Pending",
+      label: "Pending",
+      color: "bg-yellow-100 text-yellow-800",
+    },
+    { value: "Paid", label: "Paid", color: "bg-green-100 text-green-800" },
+  ];
   // Form State
   const [formData, setFormData] = useState({
     invoiceNumber: `INV-${Date.now().toString().slice(-4)}`,
@@ -26,6 +35,7 @@ function NewInvoice() {
       .toISOString()
       .split("T")[0],
     notes: "",
+    status: "Unpaid",
     billFrom: {
       name: "",
       email: "",
@@ -264,7 +274,7 @@ function NewInvoice() {
               invoiceData.billFrom.logo
                 ? `<img src="${invoiceData.billFrom.logo}" class="logo" alt="Logo">`
                 : `<div class="invoice-id">${
-                    invoiceData.billFrom.name || "Company"
+                    invoiceData.billFrom.name || "Company Name"
                   }</div>`
             }
           </div>
@@ -304,7 +314,7 @@ function NewInvoice() {
               .map(
                 (item) => `
               <tr>
-                <td>${item.description || "Item"}</td>
+                <td>${item.description || "_"}</td>
                 <td class="text-right">${Number(item.quantity).toFixed(0)}</td>
                 <td class="text-right">${Number(item.price).toFixed(2)} ${
                   invoiceData.currency
@@ -494,6 +504,7 @@ function NewInvoice() {
                 value={formData.invoiceDate}
                 onChange={handleChange}
                 className="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                required
               />
             </div>
             <div>
@@ -509,6 +520,7 @@ function NewInvoice() {
                 name="dueDate"
                 value={formData.dueDate}
                 onChange={handleChange}
+                required
                 className="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
               />
             </div>
@@ -570,6 +582,7 @@ function NewInvoice() {
                   }
                   placeholder="Description"
                   className="flex-1 p-2 border rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  required
                 />
                 <input
                   type="number"
@@ -578,6 +591,7 @@ function NewInvoice() {
                     handleItemChange(item.id, "quantity", e.target.value)
                   }
                   className="w-24 p-2 border rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  required
                 />
                 <input
                   type="number"
@@ -588,6 +602,7 @@ function NewInvoice() {
                   placeholder="Price"
                   min="0"
                   className="w-24 p-2 border rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  required
                 />
                 <button
                   onClick={() => removeItem(item.id)}
@@ -616,12 +631,13 @@ function NewInvoice() {
               rows="3"
               className="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
               placeholder="Additional notes for the invoice"
+              required
             />
           </div>
 
           {/* Disc and Tax and currency */}
-          <div className="grid md:grid-cols-3 gap-4 mb-6">
-            <div>
+          <div className="grid md:grid-cols-2 gap-4 mb-6">
+            <div className="">
               <label
                 htmlFor="taxRate"
                 className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300"
@@ -638,13 +654,14 @@ function NewInvoice() {
                   }
                   className="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   min="0"
+                  required
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500">
                   %
                 </span>
               </div>
             </div>
-            <div>
+            <div className="">
               <label
                 htmlFor="discount"
                 className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300"
@@ -661,7 +678,9 @@ function NewInvoice() {
                   }
                   className=" w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   min="0"
+                  required
                 />
+
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500">
                   %
                 </span>
@@ -686,6 +705,42 @@ function NewInvoice() {
                   </option>
                 ))}
               </select>
+            </div>
+            <div className="space-y-2">
+              <label
+                htmlFor="status"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Status
+              </label>
+              <div className="relative">
+                <select
+                  id="status"
+                  name="status"
+                  value={formData.status}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all appearance-none"
+                >
+                  {invoiceStatuses.map((status) => (
+                    <option key={status.value} value={status.value}>
+                      {status.label}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <span
+                    className={`${
+                      invoiceStatuses.find((s) => s.value === formData.status)
+                        ?.color
+                    } px-2 py-1 rounded-full text-xs`}
+                  >
+                    {
+                      invoiceStatuses.find((s) => s.value === formData.status)
+                        ?.label
+                    }
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -751,7 +806,8 @@ const AddressSection = ({ data, onChange }) => (
       value={data.name}
       onChange={(e) => onChange("name", e.target.value)}
       placeholder="Name"
-      className="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 required:"
+      className="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+      required
     />
     <input
       type="email"
@@ -759,6 +815,7 @@ const AddressSection = ({ data, onChange }) => (
       onChange={(e) => onChange("email", e.target.value)}
       placeholder="Email"
       className="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+      required
     />
     <textarea
       value={data.address}
@@ -766,6 +823,7 @@ const AddressSection = ({ data, onChange }) => (
       placeholder="Address"
       rows="3"
       className="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+      required
     />
   </div>
 );
