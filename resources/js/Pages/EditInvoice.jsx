@@ -1,52 +1,48 @@
 import React, { useEffect, useState } from "react";
 import { router, useForm, usePage } from '@inertiajs/react';
 import { FiPlus, FiTrash2, FiSave, FiX, FiUpload } from "react-icons/fi";
+import toast, { Toaster } from 'react-hot-toast';
+
 
 function EditInvoice({ invoice }) {
   const [currency, setCurrency] = useState(invoice.currency || "MAD");
   const [taxRate, setTaxRate] = useState(invoice.tax_rate || 0);
   const [discount, setDiscount] = useState(invoice.discount || 0);
-  const [successMessage, setSuccessMessage] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
 
   const { auth } = usePage().props;
-  const user = auth.user;
-  console.log(invoice)
+  const user = auth.user; 
+  const { flash } = usePage().props;
 
-  const { data, setData, put, errors, processing } = useForm({
-    number: invoice.number || `INV-${Date.now().toString().slice(-4)}`,
-    date: invoice.date || new Date().toISOString().split("T")[0],
-    due_date: invoice.due_date || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split("T")[0],
-    user_id: user.id,
-    customer_id: invoice.customer_id || user.id,
-    status: invoice.status || "Unpaid",
-    billTo: {
-      name: invoice.customer?.name || "",
-      email: invoice.customer?.email || "",
-      address: invoice.customer?.address || "",
-    },
-    invoice_items: invoice.items?.length > 0 
-      ? invoice.items.map(item => ({
-          id: item.id || Date.now().toString().slice(-4),
-          description: item.description || "",
-          quantity: item.quantity || 1,
-          unit_price: item.unit_price || 0,
-        }))
-      : [{
-          id: Date.now().toString().slice(-4),
-          description: "",
-          quantity: 1,
-          unit_price: 0,
-        }],
-    subtotal: invoice.subtotal || 0,
-    tax_rate: invoice.tax_rate || 0,
-    discount: invoice.discount || 0,
-    total: invoice.total || 0,
-    currency: invoice.currency || "MAD",
-    notes: invoice.notes || '',
-  });
+ const { data, setData, put, errors, processing } = useForm({
+  number: invoice.number,
+  date: invoice.date,
+  due_date: invoice.due_date,
+  user_id: user.id,
+  customer_id: invoice.customer_id,
+  status: invoice.status,
+  customer: {  // Changed from billTo to customer to match backend
+    name: invoice.customer?.name || "",
+    email: invoice.customer?.email || "",
+    address: invoice.customer?.address || "",
+  },
+  invoice_items: invoice.items?.map(item => ({
+    id: item.id,
+    description: item.description,
+    quantity: item.quantity,
+    unit_price: item.unit_price,
+  })) || [{
+    id: Date.now().toString().slice(-4),
+    description: "",
+    quantity: 1,
+    unit_price: 0,
+  }],
+  subtotal: invoice.subtotal || 0,
+  tax_rate: invoice.tax_rate || 0,
+  discount: invoice.discount || 0,
+  total: invoice.total || 0,
+  currency: invoice.currency || "MAD",
+  notes: invoice.notes || '',
+});
 
   // Currencies
   const currencies = [
@@ -64,13 +60,35 @@ function EditInvoice({ invoice }) {
     { value: "Paid", label: "Paid", color: "bg-green-100 text-green-800" },
   ];
   
+  const formatNumber = (num) => {
+    return new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    }).format(num);
+  };
   // Calculate totals
   const subtotal = data.invoice_items.reduce(
-    (sum, item) => sum + item.quantity * item.unit_price,
+    (sum, item) => sum + (Number(item.quantity) * Number(item.unit_price)),
     0
   );
-  const total =
-    subtotal + (subtotal * taxRate) / 100 - (subtotal * discount) / 100;
+  
+  const taxAmount = (subtotal * taxRate) / 100;
+  const discountAmount = (subtotal * discount) / 100;
+  const total = subtotal + taxAmount - discountAmount;
+    
+  useEffect(() => {
+    if (flash?.success) toast.success(flash.success);
+    if (flash?.error) toast.error(flash.error);
+  
+    setData((prev) => ({
+      ...prev,
+      subtotal: subtotal,
+      tax_rate: taxRate,
+      discount: discount,
+      total: total,
+      currency: currency,
+    }));
+  }, [subtotal, taxRate, discount, total, currency, flash]);
 
   // Handle logo upload
   const handleLogoUpload = (e) => {
@@ -92,30 +110,10 @@ function EditInvoice({ invoice }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-  
-    // Update form state with calculated values before sending
-    setData((prev) => ({
-      ...prev,
-      subtotal: subtotal,
-      tax_rate: taxRate,
-      discount: discount,
-      total: total,
-      currency: currency,
-      customer: {
-        name: data.billTo.name,
-        email: data.billTo.email,
-        address: data.billTo.address
-      }
-    }));
-  
-    put(`/invoices/${invoice.id}`, {
-      onSuccess: () => {
-        setSuccessMessage('Invoice updated successfully ✅');
-      },
-      onError: () => {
-        setErrorMessage('Error updating invoice. Please try again.');
-      }
-    });
+
+    put(`/invoices/${invoice.id}`);
+    router.reload();
+    console.log(errors)
   };
 
   // Add/remove invoice_items
@@ -141,44 +139,11 @@ function EditInvoice({ invoice }) {
     }));
   };
 
-  const handlePrint = () => {
-    const printData = {
-      ...data,
-      currency: currency || "MAD",
-      taxRate: taxRate || 0,
-      discount: discount || 0,
-      subtotal: subtotal || 0,
-      total: total || 0,
-      date: data.date || new Date().toLocaleDateString(),
-      due_date: data.due_date || new Date(Date.now() + 30 * 86400000).toLocaleDateString(),
-    };
-
-    const htmlContent = `
-      <html>
-        <head>
-          <title>Invoice ${printData.number}</title>
-          <style>
-            /* Your existing print styles */
-          </style>
-        </head>
-        <body>
-          <!-- Your existing print template -->
-        </body>
-      </html>
-    `;
-
-    const printWindow = window.open("", "_blank");
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-    }, 500);
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 transition-colors duration-300">
       <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+      <Toaster position="top-center" reverseOrder={false} />
+        
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-4">
@@ -186,16 +151,6 @@ function EditInvoice({ invoice }) {
               Edit Invoice
             </h1>
           </div>
-          {successMessage && (
-            <div className="mb-4 p-3 bg-green-100 text-green-800 rounded">
-              {successMessage}
-            </div>
-          )}
-          {errorMessage && (
-            <div className="mb-4 p-3 bg-red-100 text-red-800 rounded">
-              {errorMessage}
-            </div>
-          )}
           <button
             onClick={() => window.history.back()}
             aria-label="Close"
@@ -357,41 +312,33 @@ function EditInvoice({ invoice }) {
               </h3>
               <div className="space-y-2">
                 <div className="relative">
-                  <input
-                    value={data.billTo?.name || ''}
-                    onChange={(e) => setData(prev => ({
-                      ...prev,
-                      billTo: { ...prev.billTo, name: e.target.value }
-                    }))}
-                    className="w-full p-2 border rounded bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
-                  />
-                </div>
-                
-                {/* Email Field */}
-                <div className="relative">
-                  <input
-                    type="email"
-                    value={data.billTo?.email || ''}
-                    onChange={(e) => setData(prev => ({
-                      ...prev,
-                      billTo: { ...prev.billTo, email: e.target.value }
-                    }))}
-                    className="w-full p-2 border rounded bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
-                  />
-                </div>
-                
-                {/* Address Field */}
-                <div className="relative">
-                  <textarea
-                    value={data.billTo?.address || ''}
-                    onChange={(e) => setData(prev => ({
-                      ...prev,
-                      billTo: { ...prev.billTo, address: e.target.value }
-                    }))}
-                    rows="3"
-                    className="w-full p-2 border rounded bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
-                  />
-                </div>
+                        
+        <input
+          value={data.customer?.name || ''}
+          onChange={(e) => setData('customer.name', e.target.value)}
+          className="w-full p-2 border rounded bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 "
+        />
+      </div>
+      
+      {/* Email Field */}
+      <div className="relative">
+        <input
+          type="email"
+          value={data.customer?.email || ''}
+          onChange={(e) => setData('customer.email', e.target.value)}
+          className="w-full p-2 border rounded bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 "
+        />
+      </div>
+      
+      {/* Address Field */}
+      <div className="relative">
+        <textarea
+          value={data.customer?.address || ''}
+          onChange={(e) => setData('customer.address', e.target.value)}
+          rows="3"
+          className="w-full p-2 border rounded bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 "
+        />
+      </div>
               </div>
             </div>
           </div>
@@ -424,7 +371,7 @@ function EditInvoice({ invoice }) {
                 />
                 <input
                   type="number"
-                  value={item.quantity}
+                  value={Number(item.quantity)}
                   onChange={(e) =>
                     handleItemChange(item.id, "quantity", e.target.value)
                   }
@@ -433,7 +380,7 @@ function EditInvoice({ invoice }) {
                 />
                 <input
                   type="number"
-                  value={item.unit_price}
+                  value={formatNumber(item.unit_price)}
                   onChange={(e) =>
                     handleItemChange(item.id, "unit_price", e.target.value)
                   }
@@ -485,12 +432,11 @@ function EditInvoice({ invoice }) {
                 <input
                   id="taxRate"
                   type="number"
-                  value={taxRate}
+                  value={taxRate || ''}
                   onChange={(e) =>
-                    setTaxRate(Math.max(0, Number(e.target.value)))
+                    setTaxRate(Number(e.target.value))
                   }
                   className="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  min="0"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500">
                   %
@@ -508,9 +454,9 @@ function EditInvoice({ invoice }) {
                 <input
                   id="discount"
                   type="number"
-                  value={discount}
+                  value={discount || ''}
                   onChange={(e) =>
-                    setDiscount(Math.max(0, Number(e.target.value)))
+                    setDiscount( Number(e.target.value))
                   }
                   className="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   min="0"
@@ -583,25 +529,25 @@ function EditInvoice({ invoice }) {
             <div className="flex justify-between mb-2 text-gray-800 dark:text-gray-100">
               <span>Subtotal:</span>
               <span>
-                {subtotal.toFixed(2)} {currency}
+                {subtotal.toFixed(2) } {currency}
               </span>
             </div>
             <div className="flex justify-between mb-2 text-gray-800 dark:text-gray-100">
               <span>Tax ({taxRate}%):</span>
               <span>
-                {((subtotal * taxRate) / 100).toFixed(2)} {currency}
+                {((subtotal * taxRate) / 100).toFixed(2) } {currency}
               </span>
             </div>
             <div className="flex justify-between mb-4 text-gray-800 dark:text-gray-100">
               <span>Discount ({discount}%):</span>
               <span>
-                -{((subtotal * discount) / 100).toFixed(2)} {currency}
+                -{((subtotal * discount) / 100).toFixed(2) } {currency}
               </span>
             </div>
             <div className="flex justify-between font-bold border-t pt-4 text-gray-800 dark:text-gray-100">
               <span>Total:</span>
               <span>
-                {total.toFixed(2)} {currency}
+                {total.toFixed(2) } {currency}
               </span>
             </div>
           </div>
@@ -624,7 +570,7 @@ function EditInvoice({ invoice }) {
             </button>
             <button
               type="button"
-              onClick={handlePrint}
+              href={route('invoices.edit',{ invoice: invoice.id })}
               className="px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition focus:outline-none"
             >
               Print Invoice

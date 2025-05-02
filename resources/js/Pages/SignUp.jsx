@@ -3,9 +3,11 @@ import { motion } from "framer-motion";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 import { RiUserReceived2Line } from "react-icons/ri";
 import { HiOutlineMail } from "react-icons/hi";
-import { useState } from "react"; // For password visibility toggle
+import { useEffect, useState } from "react"; // For password visibility toggle
 import SignInImage from "../assets/Sign up-cuate.svg";
-import { Link, useForm } from "@inertiajs/react";
+import { Link, useForm, usePage } from "@inertiajs/react";
+import toast, { Toaster } from 'react-hot-toast';
+
 
 // Animation variants
 const containerVariants = {
@@ -18,7 +20,6 @@ const containerVariants = {
     },
   },
 };
-
 const itemVariants = {
   hidden: { y: 20, opacity: 0 },
   visible: { y: 0, opacity: 1 },
@@ -40,7 +41,12 @@ const floatVariants = {
 
 function SignUp() {
   const [showPassword, setShowPassword] = useState(false); // State for password visibility
+  const { flash } = usePage().props;
 
+     useEffect(() => {
+        if (flash?.success) toast.success(flash.success);
+        if (flash?.error) toast.error(flash.error);
+    }, [flash]);
 
   const {data, setData, post, processing, errors} = useForm({
     name: "",
@@ -61,7 +67,6 @@ function SignUp() {
     e.preventDefault();
 
       post('/register');
-
   };
 
   return (
@@ -71,7 +76,10 @@ function SignUp() {
       exit={{ opacity: 0 }}
       className="font-inter container mx-auto w-full min-h-screen flex items-center justify-center px-4 "
     >
+    <Toaster position="top-center" reverseOrder={false} />
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-10">
+
+
         {/* Form Section */}
         <motion.div
           variants={containerVariants}
@@ -80,7 +88,6 @@ function SignUp() {
           className="h-fit my-auto rounded-2xl border border-gray-200 px-6 py-4 shadow-lg dark:bg-gray-800 dark:border-gray-700"
         >
           <form onSubmit={handleSubmit}>
-          @csrf
             <motion.h2
               variants={itemVariants}
               className="text-4xl font-bold mb-2 text-gray-800 dark:text-white"

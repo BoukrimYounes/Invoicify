@@ -1,12 +1,11 @@
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
-import { Link, router, useForm } from '@inertiajs/react';
-import { useState } from "react"; // For password visibility toggle
+import { Link, useForm, usePage } from '@inertiajs/react';
+import { useEffect, useState } from "react"; // For password visibility toggle
 import { HiOutlineMail } from "react-icons/hi";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
-import { Flip, ToastContainer, toast } from "react-toastify";
-
 import SignInImage from "../assets/Sign in-pana.svg";
+import toast ,{ Toaster } from "react-hot-toast";
 
 // Animation variants
 const containerVariants = {
@@ -41,25 +40,19 @@ const floatVariants = {
 
 function SignIn() {
   const [showPassword, setShowPassword] = useState(false); // State for password visibility
+  const { flash } = usePage().props;
+
+  useEffect(() => {
+     if (flash?.success) toast.success(flash.success);
+     if (flash?.error) toast.error(flash.error);
+  }, [flash]);
+  
   const {data, setData, post, errors ,processing} = useForm({
     email: "",
     password: "",
-    rememberMe: false,
+    remember: false,
   });
 
-  const SignInToast = () =>
-    toast.success("🎉 Welcome back! You're successfully signed in.", {
-      position: "top-right",
-      autoClose: 2000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      theme: "colored",
-      transition: Flip,
-    });
-  // Update input handling
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setData((prev) => ({
@@ -70,28 +63,8 @@ function SignIn() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    post('/login', {
-      onStart: () => {
-        // Show loading state
-        SignInToast('Loading...', 'info');
-      },
-      onSuccess: () => {
-        // Show success message
-        SignInToast('Login successful!', 'success');
-      },
-      onError: (errors) => {
-        // Show error messages
-        if (errors.email) {
-          SignInToast(errors.email, 'error');
-        }
-        if (errors.password) {
-          SignInToast(errors.password, 'error');
-        }
-      },
-    });
+    post('/login');
     }
-
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -99,6 +72,8 @@ function SignIn() {
       exit={{ opacity: 0 }}
       className="font-inter container mx-auto w-full min-h-screen flex items-center justify-center px-4 "
     >
+      <Toaster position="top-center" reverseOrder={false} />
+
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-10">
         {/* Form Section */}
         <motion.div
@@ -259,8 +234,8 @@ function SignIn() {
                 <input
                   type="checkbox"
                   id="remember-me"
-                  name="rememberMe"
-                  checked={data.rememberMe}
+                  name="remember"
+                  checked={data.remember}
                   onChange={handleInputChange}
                   className="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500 accent-blue-500/25 dark:border-gray-600 dark:bg-gray-700"
                 />
@@ -272,7 +247,7 @@ function SignIn() {
                 </label>
               </div>
               <Link
-                to="/password"
+                href={route('password.request')} 
                 className="text-sm text-blue-500 hover:underline dark:text-blue-400"
               >
                 Forgot your password?

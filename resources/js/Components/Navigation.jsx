@@ -2,9 +2,10 @@
 import React, { useEffect, useState } from "react";
 import logoDark from "../assets/logo_text_white.png";
 import logoLight from "../assets/logo_text_black.png";
-import {  useForm, usePage } from  '@inertiajs/react';
+import {  router, useForm, usePage } from  '@inertiajs/react';
 import { BiLogOut } from "react-icons/bi";
 import { motion } from "framer-motion";
+import toast from "react-hot-toast";
 
 function Navigation() {
   const [showEmail, setShowEmail] = useState(false);
@@ -13,6 +14,12 @@ function Navigation() {
     window.matchMedia("(prefers-color-scheme: dark)").matches
   );
   const { user } = usePage().props.auth;
+  const { flash } = usePage().props;
+
+  useEffect(() => {
+      if (flash?.success) toast.success(flash.success);
+      if (flash?.error) toast.error(flash.error);
+  }, [flash]);
 
   function getInitials(name) {
     if (!name) return 'AN'; // Anonymous fallback
@@ -23,7 +30,7 @@ function Navigation() {
       .join('')
       .substring(0, 2);
   }
-  const { post } = useForm();
+ 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleChange = (e) => setIsDarkMode(e.matches);
@@ -31,9 +38,7 @@ function Navigation() {
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
 
-  const confirmLogout = () => {
-    post('logout');
-  };
+
 
   const handleLogout = () => {
     setShowAlert(true);
@@ -123,7 +128,9 @@ function Navigation() {
               </button>
               <button
                 className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
-                onClick={confirmLogout}
+                onClick={() => router.post('/logout',{
+                  onSuccess: () => { toast.success(flash.success)}
+              })}
               >
                 Log Out
               </button>

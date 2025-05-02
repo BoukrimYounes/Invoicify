@@ -16,7 +16,7 @@ export default function Print({ invoice }) {
     React.useEffect(() => {
         window.print();
     }, []);
-
+    console.log(invoice)
     return (
         <>
         <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{`Invoice ${invoice.number}`}</h1>
@@ -91,7 +91,7 @@ export default function Print({ invoice }) {
                             </thead>
                             <tbody>
                                 {invoice.items.map((item, index) => (
-                                    <tr key={index} className={index % 2 === 0 ? 'bg-white text-black' : 'bg-gray-50'}>
+                                    <tr key={index} className={ 'bg-white text-black' }>
                                         <td className="py-2 px-4 border">{item.description}</td>
                                         <td className="py-2 px-4 text-right border">{item.quantity}</td>
                                         <td className="py-2 px-4 text-right border">
@@ -107,7 +107,7 @@ export default function Print({ invoice }) {
                     </div>
 
                     {/* Totals */}
-                    <div className="ml-auto w-64">
+                    <div className="ml-auto w-64 text-black">
                         <div className="flex justify-between py-2 border-b">
                             <span>Subtotal:</span>
                             <span>{subtotal.toFixed(2)} {invoice.currency}</span>
