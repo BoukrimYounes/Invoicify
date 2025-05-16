@@ -100,10 +100,13 @@ function EditInvoice({ invoice }) {
   };
 
   const handleItemChange = (id, field, value) => {
-    setData((prev) => ({
+    setData(prev => ({
       ...prev,
-      invoice_items: prev.invoice_items.map((item) =>
-        item.id === id ? { ...item, [field]: value } : item
+      invoice_items: prev.invoice_items.map(item => 
+        item.id === id ? { ...item, [field]: field === 'quantity' || field === 'unit_price' 
+          ? Number(value) 
+          : value 
+        } : item
       ),
     }));
   };
@@ -113,7 +116,7 @@ function EditInvoice({ invoice }) {
 
     put(`/invoices/${invoice.id}`);
     router.reload();
-    console.log(errors)
+    console.log(errors) 
   };
 
   // Add/remove invoice_items

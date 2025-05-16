@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashbordController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\LogoController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -15,6 +16,8 @@ Route::middleware(['guest'])->group(function () {
     Route::get('/', fn() => Inertia::render('SignIn'))->name('signin');
     Route::get('/ForgotPassword', fn() => Inertia::render('ForgotPassword'))->name('password.request');
     Route::post('/ForgotPassword', [AuthController::class, 'ForgotPassword'])->name('password.email');
+    Route::post('/logo/upload', [LogoController::class, 'upload'])->name('logo.upload');
+    Route::delete('/logo/delete', [LogoController::class, 'delete'])->name('logo.delete');
 });
 
     Route::middleware(['auth'])->group(function () {

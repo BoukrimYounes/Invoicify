@@ -48,6 +48,7 @@ class InvoiceController extends Controller
                 'subtotal' => 'required|numeric',
                 'total' => 'required|numeric',
                 'notes' => 'nullable|string',
+                'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
                 'invoice_items' => 'required|array',
                 'invoice_items.*.description' => 'required|string',
                 'invoice_items.*.quantity' => 'required|integer|min:1',
@@ -57,40 +58,47 @@ class InvoiceController extends Controller
                 'customer.address' => 'required|string',
             ]);
     
-            return DB::transaction(function () use ($validated) {
-                // Create or find the customer
-                $customer = Customer::firstOrCreate(
-                    ['email' => $validated['customer']['email']],
-                    [
-                        'name' => $validated['customer']['name'],
-                        'address' => $validated['customer']['address']
-                    ]
-                );
-        
-                // Create the invoice - STORE THE PERCENTAGE VALUES DIRECTLY
-                $invoice = Auth::user()->invoices()->create([
-                    'number' => $validated['number'],
-                    'date' => $validated['date'],
-                    'due_date' => $validated['due_date'],
-                    'customer_id' => $customer->id,
-                    'status' => $validated['status'],
-                    'subtotal' => $validated['subtotal'],
-                    'tax_rate' => $validated['tax_rate'], // Store the percentage (e.g., 10)
-                    'discount' => $validated['discount'], // Store the percentage (e.g., 20)
-                    'total' => $validated['total'],
-                    'currency' => $validated['currency'],
-                    'notes' => $validated['notes'] ?? null,
+            return DB::transaction(function () use ($validated, $request) {
+            $user = Auth::user();
+            
+            // Handle logo upload if present
+            if ($request->hasFile('logo')) {
+                $logoPath = $request->file('logo')->store('users/logos', 'public');
+                $user->update(['logo' => $logoPath]);
+            }
+
+            // Create or find customer
+            $customer = Customer::firstOrCreate(
+                ['email' => $validated['customer']['email']],
+                [
+                    'name' => $validated['customer']['name'],
+                    'address' => $validated['customer']['address']
+                ]
+            );
+
+            // Create invoice
+            $invoice = $user->invoices()->create([
+                'number' => $validated['number'],
+                'date' => $validated['date'],
+                'due_date' => $validated['due_date'],
+                'customer_id' => $customer->id,
+                'status' => $validated['status'],
+                'subtotal' => $validated['subtotal'],
+                'tax_rate' => $validated['tax_rate'],
+                'discount' => $validated['discount'],
+                'total' => $validated['total'],
+                'currency' => $validated['currency'],
+                'notes' => $validated['notes'] ?? null,
+            ]);
+
+            // Create invoice items
+            foreach ($validated['invoice_items'] as $item) {
+                $invoice->items()->create([
+                    'description' => $item['description'],
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price']
                 ]);
-        
-                // Create invoice items
-                foreach ($validated['invoice_items'] as $item) {
-                    $invoice->items()->create([
-                        'description' => $item['description'],
-                        'quantity' => $item['quantity'],
-                        'unit_price' => $item['unit_price']
-                    ]);
-                }
-        
+            }
                 return redirect('dashbord')->with('success', 'Your invoice was created!');
             });
         } catch (\Illuminate\Validation\ValidationException $e) {
