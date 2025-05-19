@@ -88,7 +88,7 @@ Link coming soon…
 ## Backend Setup (Laravel)
 
 ```bash
-git clone https://github.com/YourUsername/Invoicify.git
+git clone https://github.com/BoukrimYounes/Invoicify.git
 cd Invoicify
 composer install
 cp .env.example .env
