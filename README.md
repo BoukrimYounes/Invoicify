@@ -2,7 +2,7 @@
 	<img
 		width="250"
 		alt="Invoicify"
-		src="https://github.com/BoukrimYounes/Invoicify/resources/js/assets/logo.png">
+		src="https://github.com/BoukrimYounes/Invoicify/blob/master/resources/js/assets/logo.png">
 </h1>
 
 <h3 align="center">
@@ -96,7 +96,7 @@ php artisan key:generate
 php artisan migrate
 php artisan serve
 ```
-##Frontend Setup (React)
+## Frontend Setup (React)
 ```bash
 cd resources/js
 npm install
