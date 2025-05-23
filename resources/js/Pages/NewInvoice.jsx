@@ -74,7 +74,7 @@ function NewInvoice() {
     const discountAmount = (subtotal * discount) / 100;
     const total = subtotal + taxAmount - discountAmount;
 
-        useEffect(() => {
+    useEffect(() => {
         if (flash?.success) toast.success(flash.success);
         if (flash?.error) toast.error(flash.error);
 
@@ -86,29 +86,31 @@ function NewInvoice() {
             total: total,
             currency: currency,
         }));
-    }, [subtotal, taxRate, discount, total, currency,flash]);
-    
-   const handleLogoUpload = (e) => {
+    }, [subtotal, taxRate, discount, total, currency, flash]);
+
+    const handleLogoUpload = (e) => {
         const file = e.target.files[0];
         if (file?.type.startsWith("image/")) {
-            setData('logo', file);
+            setData("logo", file);
         } else {
-            toast.error('Please upload a valid image file (JPEG, PNG, JPG, GIF)');
+            toast.error(
+                "Please upload a valid image file (JPEG, PNG, JPG, GIF)"
+            );
         }
     };
     // Handle logo deletion
     const handleLogoDelete = () => {
-        router.delete(route('logo.delete'), {
+        router.delete(route("logo.delete"), {
             onSuccess: () => {
-                toast.success('Logo removed successfully');
-                router.reload({ only: ['auth'] });
+                toast.success("Logo removed successfully");
+                router.reload({ only: ["auth"] });
             },
             onError: () => {
-                toast.error('Failed to remove logo');
-            }
+                toast.error("Failed to remove logo");
+            },
         });
     };
-    
+
     const handleItemChange = (id, field, value) => {
         setData((prev) => ({
             ...prev,
@@ -181,64 +183,75 @@ function NewInvoice() {
                             <div className="relative">
                                 <input
                                     id="invoiceNumber"
-                                    name="invoiceNumber"
+                                    name="number"
                                     value={data.number}
                                     onChange={(e) =>
                                         setData("number", e.target.value)
                                     }
                                     className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     placeholder="INV-0001"
+                                    required
                                 />
                                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm">
                                     #ID
                                 </span>
                             </div>
+                            {errors.number && (
+                                <p className="mt-1 text-sm text-red-600">
+                                    {errors.number}
+                                </p>
+                            )}
                         </div>
-</div>
-                       {/* Logo Upload Section */}
-            <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                    Company Logo (Optional)
-                </label>
-                <div className="relative group">
-                    <label className="flex flex-col items-center justify-center h-full min-h-[100px] border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleLogoUpload}
-                            className="hidden"
-                        />
-                        {data.logo ? (
-                            <div className="relative">
-                                <img
-                                    src={URL.createObjectURL(data.logo)}
-                                    alt="Logo preview"
-                                    className="w-20 h-20 rounded-lg object-cover"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setData('logo', null)}
-                                    className="absolute -top-2 -right-2 p-1 bg-red-500 rounded-full hover:bg-red-600 transition-colors"
-                                >
-                                    <FiX className="w-4 h-4 text-white" />
-                                </button>
+
+                        {/* Logo Upload */}
+                        <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Company Logo
+                            </label>
+                            <div className="relative group">
+                                <label className="flex flex-col items-center justify-center h-full min-h-[100px] border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-blue-500 dark:hover:border-blue-400 transition-colors">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleLogoUpload}
+                                        className="hidden"
+                                    />
+                                    {data.logo ? (
+                                        <div className="relative">
+                                            <img
+                                                src={URL.createObjectURL(
+                                                    data.logo
+                                                )}
+                                                alt="Company Logo"
+                                                className="w-20 h-20 rounded-lg object-cover shadow-sm border border-gray-200 dark:border-gray-600"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setData("logo", null)
+                                                }
+                                                className="absolute -top-2 -right-2 p-1 bg-red-500 rounded-full hover:bg-red-600 transition-colors"
+                                            >
+                                                <FiX className="w-4 h-4 text-white" />
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col items-center p-4 text-center">
+                                            <FiUpload className="w-8 h-8 text-gray-400 dark:text-gray-500 mb-2" />
+                                            <div className="text-sm">
+                                                <span className="text-blue-600 dark:text-blue-400 font-medium">
+                                                    Upload logo
+                                                </span>
+                                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                    PNG, JPG up to 2MB
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </label>
                             </div>
-                        ) : (
-                            <div className="flex flex-col items-center p-4 text-center">
-                                <FiUpload className="w-8 h-8 text-gray-400 mb-2" />
-                                <div className="text-sm">
-                                    <span className="text-blue-600 font-medium">
-                                        Upload logo
-                                    </span>
-                                    <p className="text-xs text-gray-500 mt-1">
-                                        PNG, JPG up to 2MB
-                                    </p>
-                                </div>
-                            </div>
-                        )}
-                    </label>
-                </div>
-            </div>
+                        </div>
+                    </div>
 
                     {/* Invoice Header */}
                     <div className="grid md:grid-cols-2 gap-4 mb-6">

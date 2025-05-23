@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { FiChevronDown, FiChevronUp, FiEdit, FiTrash } from "react-icons/fi";
 import { MdOutlineLocalPrintshop } from "react-icons/md";
 import Navigation from "../components/Navigation";
