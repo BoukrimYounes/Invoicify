@@ -34,7 +34,7 @@
 
 # 📷 Demo
 
-Link coming soon…
+https://github.com/user-attachments/assets/dc341d1c-1709-4f58-b8b5-6f4a90581883
 
 # ⛓ Description
 
